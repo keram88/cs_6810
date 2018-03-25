@@ -1,0 +1,204 @@
+\documentclass[a4paper, 11pt]{exam}
+\usepackage{titling}
+\newcommand{\subtitle}[1]{%
+  \posttitle{%
+    \par\end{center}
+    \begin{center}\large#1\end{center}
+    }%
+}
+
+\usepackage{url}
+\usepackage{amsmath,amsthm,enumitem,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\renewcommand{\labelenumii}{\roman{enumii}}
+\usepackage{courier}
+\usepackage{float}
+
+
+\title{Homework Assignment 4}
+\subtitle{CS/ECE 6810: Computer Architecture \\
+Marek Baranowski\\
+March 14, 2018}
+
+\author{ \\
+\textbf{Memory Hierarchy: Cache}}
+\date{Due Date: March 27, 2018.\\
+(100 points)}
+
+\begin{document}
+\maketitle
+\begin{center}
+\fbox{\fbox{\parbox{5.9in}{\centering
+Important Notes:
+\begin{itemize}
+\item Solutions turned in must be your own. Please, mention references (if any) at the end of each question. Please refrain from cheating.
+\item All solutions must be accompanied by the equations used/logic/intermediate steps and assumptions. Writing only the final answer will receive \textbf{zero} credit.
+\item All units must be mentioned wherever required.
+\item Late submissions \textbf{(after 11:59 pm on 03/27/2018)} will not be accepted
+\item All submissions must be in PDF only. Scanned copies of handwritten solutions will not be accepted as a valid submission.
+\end{itemize}
+}}}
+\end{center}
+\vspace{0.2in}
+
+
+\begin{enumerate}
+ \item \textbf{Cache Hierarchy (20 points): } Consider a processor with the following memory
+organization: L1 Cache, L2 Cache, L3 Cache and main memory. Each cache stores both tags
+and data. The data and tag arrays are going to be accessed with the same index value. Assume
+that the processor does \textbf{serial} tag/data look-up (first tag lookup and then data access) for L2
+and L3 caches and \textbf{parallel} tag/data look-up for L1 cache. The table given below provides the
+time take to access the tag and data arrays in cycles
+\newline
+
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+ \hline
+ \textbf{Cache level} & \textbf{Tag Access} & \textbf{Data Access} & \textbf{Hit Rate} \\
+ L1 (32 KB)  & 1 & - & $50\%$ \\
+ \hline
+ L2 (1 MB) & 3 & 18 & $55\%$ \\
+ \hline
+ L3 (8 MB) & 25 & 85 & $75\%$ \\
+ \hline
+ Main Memory (8 GB) & - & 440 & - \\
+ \hline
+\end{tabular}
+\end{center}
+
+Find the number of cycles required to complete 2000 load instructions accessing this
+hierarchy. \newline
+
+ 
+\item \textbf{Performance Metric (20 points): } Consider a processor with a cache that has a hit time
+of 5 cycles. If a miss occurs, then the penalty would be 150 cycles. Calculate AMAT if the
+miss rate of this cache is $20\%$.\newline
+
+AMAT = $5(t_h) + 0.2(r_m)\cdot150cycles(t_p) = 35cycles$
+
+\item \textbf {Cache Addressing (30 points): }  Consider a processor using 2 cache levels. Level-1 cache is a
+32KB direct mapped cache with 16B blocks used for both instructions and data. Level-2 is a
+1MB, 4-way set associative cache with 64B cache lines. Assume that the processor can
+address up to 8GB of main memory. 
+
+
+ \begin{enumerate} [label=(\alph*)]
+ \item  Find the number of bits for tag, index, and offset for level-1 and level-2 caches
+
+ \begin{itemize}
+ 	\item First the processor can address $8\cdot2^{30}$ bytes of memory, so the address is 33 bits.
+	\item For L1 we find:
+	\begin{itemize}
+	\item The blocks are 16=$2^4$ bytes, so the offset is 4 bits.
+	\item The cache has $\frac{2^5\cdot2^{10} bytes}{2^4 bytes} = 2^{11}$ entries, so the index is 11 bits.
+	\item Finally, we have $33-4-11=19$ bits for the tag.
+	\end{itemize}
+	\item For L2 we find:
+	\begin{itemize}
+	\item Each cache line is $64=2^6$ bytes, so the offset is 6 bits.
+	\item From the 4 sets, and the 64B cache line we find $\frac{2^{20}bytes}{4\cdot64bytes}=\frac{2^{20}}{2^8}=2^{12}$ index locations, so the index is 12 bits.
+	\item Finally the tag is $33-6-12=15$ bits.
+	\end{itemize}
+ \end{itemize}
+ \item  Compute the size of the data and tag arrays in KB for each level. 
+ \end{enumerate}
+
+\item \textbf {Cache Replacement Policies (30 points): }  Consider a 2-way set associative cache with two
+sets. When running two different programs on this machine, the following access patterns are
+observed. 
+
+\begin{itemize}
+\item Program 1: C,A,B,D,B,F,C,E,A,D,B,F,A,B,C,E,B,A,F,D
+\item Program 2: D,F,C,B,A,A,F,C,D,D,A,B,A,B,C,E,B,A,B,D
+\end{itemize}
+Assuming that blocks A, B, and C are mapped to set 1 and blocks D, E, and F are mapped to
+set 2, compute the miss rates for each program (running solely) when Ideal, LRU, and MRU
+replacement policies are applied.
+
+In the following tables an `x' indicates a miss, and a `v' indicates a hit.
+
+\begin{table}[H]
+\caption{Program 1}
+\begin{center}
+\tiny
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+Ideal & C & A & B & D & B & F & C & E & A & D & B & F & A & B & C & E & B & A & F & D \\
+\hline
+Set 1, Way 1 & Cx &  &  &  &  &  & Cv &  & Ax &  &  &  & Av &  & Cx &  &  & Ax  & & \\
+Set 1, Way 2 &  & Ax & Bx &  & Bv &  &  &  &  &  & Bv &  &  & Bv &  &  & Bv & & & \\
+\hline
+Set 2, Way 1 &  &  &  & Dx &  &  &  &  &  & Dv &  & Fx &  &  &  &  &  &  & Fv & Dx \\
+Set 2, Way 2 &  &  &  &  &  & Fx &  & Ex &  &  &  &  &  &  &  & Ev & &  &  &\\
+\hline
+\hline
+LRU & C & A & B & D & B & F & C & E & A & D & B & F & A & B & C & E & B & A & F & D \\
+\hline
+Set 1, Way 1 & Cx &  & Bx &  & Bv &  &  &  & Ax &  &  &  & Av &  & Cx &  &  & Ax& & \\
+Set 1, Way 2 &  & Ax &  &  &  &  & Cx &  &  &  & Bx &  &  & Bv &  &  & Bv & & & \\
+\hline
+Set 2, Way 1 &  &  &  & Dx &  &  &  & Ex &  &  &  & Fx &  &  &  &  &  &  & Fv &\\
+Set 2, Way 2 &  &  &  &  &  & Fx &  &  &  & Dx &  &  &  &  &  & Ex &  &  &  & Dx \\
+\hline
+\hline
+MRU & C & A & B & D & B & F & C & E & A & D & B & F & A & B & C & E & B & A & F & D \\
+\hline
+Set 1, Way 1 & Cx &  &  &  &  &  & Cv &  & Ax &  &  &  & Av &  &  &  &  & Av & &  \\
+Set 1, Way 2 &  & Ax & Bx &  & Bv &  &  &  &  &  & Bv &  &  & Bv & Cx &  & Bx & & &  \\
+\hline
+Set 2, Way 1 &  &  &  & Dx &  &  &  &  &  & Dv &  & Fx &  &  &  &  &  &  & Fv & Dx \\
+Set 2, Way 2 &  &  &  &  &  & Fx &  & Ex &  &  &  &  &  &  &  & Ev  & & & & \\
+\hline
+\end{tabular}
+\end{center}
+\label{default}
+\end{table}%
+The miss rates for program 1 are:
+
+Ideal: $\frac{11}{20}$, LRU: $\frac{15}{20}$, MRU: $\frac{11}{20}$
+
+\begin{table}[H]
+\caption{Program 2}
+\begin{center}
+\tiny
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+Ideal & D & F & C & B & A & A & F & C & D & D & A & B & A & B & C & E & B & A & B & D \\
+\hline
+Set 1, Way 1 &  &  &  & Bx & Ax & Av &  &  &  &  & Av &  & Av &  & Cx &  &  & Ax & &\\
+Set 1, Way 2 &  &  & Cx &  &  &  &  & Cv &  &  &  & Bx &  & Bv &  &  & Bv &  & Bv  &\\
+\hline
+Set 2, Way 1 & Dx &  &  &  &  &  &  &  & Dv & Dv &  &  &  &  &  &  &  &  &  & Dv \\
+Set 2, Way 2 &  & Fx &  &  &  &  & Fv &  &  &  &  &  &  &  &  & Ex & & & &\\
+\hline
+\hline
+LRU & D & F & C & B & A & A & F & C & D & D & A & B & A & B & C & E & B & A & B & D \\
+\hline
+Set 1, Way 1 &  &  & Cx &  & Ax & Av &  &  &  &  & Av &  & Av &  & Cx &  &  & Ax  &  &\\
+Set 1, Way 2 &  &  &  & Bx &  &  &  & Cx &  &  &  & Bx &  & Bv &  &  & Bv &  & Bv&\\
+\hline
+Set 2, Way 1 & Dx &  &  &  &  &  &  &  & Dv & Dv &  &  &  &  &  &  &  &  &  & Dv \\
+Set 2, Way 2 &  & Fx &  &  &  &  & Fv &&&&&&&&&Ex&&&&\\
+\hline
+\hline
+MRU & D & F & C & B & A & A & F & C & D & D & A & B & A & B & C & E & B & A & B & D \\
+\hline
+Set 1, Way 1 &  &  &  & Bx & Ax & Av &  &  &  &  & Av & Bx & Ax & Bx &  &  & Bv & Ax & Bx& \\
+Set 1, Way 2 &  &  & Cx &  &  &  &  & Cv &  &  &  &  &  &  & Cv &&&&& \\
+\hline
+Set 2, Way 1 & Dx &  &  &  &  &  &  &  & Dv & Dv &  &  &  &  &  & Ex &  &  &  & Dx \\
+Set 2, Way 2 &  & Fx &  &  &  &  & Fv &&&&&&&&&&&&&\\
+\hline
+\end{tabular}
+\end{center}
+\label{default}
+\end{table}%
+The miss rates for program 2 are:
+
+Ideal: $\frac{9}{20}$, LRU: $\frac{9}{20}$, MRU: $\frac{12}{20}$
+
+
+\end{enumerate}
+\end{document}
