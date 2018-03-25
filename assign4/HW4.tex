@@ -72,7 +72,7 @@ Find the number of cycles required to complete 2000 load instructions accessing 
 hierarchy. \newline
 
 First we find AMAT, which will allow us to determine the expected number of cycles for the 2,000 loads to complete.
-Since this doesn't exactly follow the formula given in the slides, we need to find the probability of getting data at each level, along with
+Since this doesn't exactly follow the simplified formula given in the slides, we need to find the probability of getting data at each level, along with
 the time to get the data to the CPU; since retrieving data from each level is mutually exclusive from getting it from a previous level, we can simply sum
 the expected cycles for each level.
 \begin{itemize}
@@ -82,7 +82,7 @@ the expected cycles for each level.
 \item Mem: On an L3 miss, 29 cycles have passed, so when we reach this level, we expect $(1-0.5)\cdot(1-0.55)\cdot(1-0.75)\cdot(29+440) = 0.5\cdot0.45\cdot0.25\cdot469$ cycles for data to be available.
 \end{itemize}
 
-When summing these expected cycles we get an AMAT of 52.16875 cycles, so we expect 2000 load instructions to take 104,337.5 cycles.
+We could roll the previous calculations together and it would follow the unreduced form of AMAT. But we can directly sum these expected cycles to get an AMAT of 52.16875 cycles, so we expect 2000 load instructions to take 104,337.5 cycles.
 
  
 \item \textbf{Performance Metric (20 points): } Consider a processor with a cache that has a hit time
