@@ -82,7 +82,7 @@ the expected cycles for each level.
 \item Mem: On an L3 miss, 29 cycles have passed, so when we reach this level, we expect $(1-0.5)\cdot(1-0.55)\cdot(1-0.75)\cdot(29+440) = 0.5\cdot0.45\cdot0.25\cdot469$ cycles for data to be available.
 \end{itemize}
 
-We could roll the previous calculations together and it would follow the unreduced form of AMAT. But we can directly sum these expected cycles to get an AMAT of 52.16875 cycles, so we expect 2000 load instructions to take 104,337.5 cycles.
+Adding these (and reducing) we get AMAT=$0.5\cdot 1 + 0.5\cdot(1+0.55\cdot(3+18)+0.45\cdot(3+0.75\cdot(25+85)+0.25\cdot(25+440)))=52.16875$ cycles for one load, so we expect 2000 load instructions to take $2000\cdot52.16875=104,337.5$ cycles.
 
  
 \item \textbf{Performance Metric (20 points): } Consider a processor with a cache that has a hit time
