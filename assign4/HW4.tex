@@ -89,7 +89,7 @@ Adding these (and reducing) we get AMAT=$0.5\cdot 1 + 0.5\cdot(1+0.55\cdot(3+18)
 of 5 cycles. If a miss occurs, then the penalty would be 150 cycles. Calculate AMAT if the
 miss rate of this cache is $20\%$.\newline
 
-AMAT = $5(t_h) + 0.2(r_m)\cdot150cycles(t_p) = 35cycles$
+AMAT = $5(t_h)cycles + 0.2(r_m)\cdot150cycles(t_p) = 35cycles$
 
 \item \textbf {Cache Addressing (30 points): }  Consider a processor using 2 cache levels. Level-1 cache is a
 32KB direct mapped cache with 16B blocks used for both instructions and data. Level-2 is a
@@ -116,6 +116,11 @@ address up to 8GB of main memory.
 	\end{itemize}
  \end{itemize}
  \item  Compute the size of the data and tag arrays in KB for each level. 
+ Each entry in the cache needs a tag so this is simply a matter of multiplying the number of tag bits with the number of entries:
+ \begin{itemize}
+ \item L1 has $\frac{2^5\cdot2^{10}}{2^4}=2^{11}$ entries. So, there are $\frac{11\cdot2^{19}}{2^3}=19\cdot2^8=4.75$KB for the tag array. We get a total size for L1 of $32KB + 4.75KB=36.75KB$.
+ \item L2 has $\frac{2^{20}}{2^6}=2^{14}$ entries. We get $\frac{15\cdot2^{14}}{2^3}=30\cdot2^{10} = 30 KB$ for the tag array. The total size for L2 is $(1024+30) KB=1054KB$.
+  \end{itemize}
  \end{enumerate}
 
 \item \textbf {Cache Replacement Policies (30 points): }  Consider a 2-way set associative cache with two
