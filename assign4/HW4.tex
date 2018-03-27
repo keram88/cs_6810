@@ -106,7 +106,7 @@ address up to 8GB of main memory.
 	\begin{itemize}
 	\item The blocks are 16=$2^4$ bytes, so the offset is 4 bits.
 	\item The cache has $\frac{2^5\cdot2^{10} bytes}{2^4 bytes} = 2^{11}$ entries, so the index is 11 bits.
-	\item Finally, we have $33-4-11=19$ bits for the tag.
+	\item Finally, we have $33-4-11=18$ bits for the tag.
 	\end{itemize}
 	\item For L2 we find:
 	\begin{itemize}
@@ -118,7 +118,7 @@ address up to 8GB of main memory.
  \item  Compute the size of the data and tag arrays in KB for each level. 
  Each entry in the cache needs a tag so this is simply a matter of multiplying the number of tag bits with the number of entries:
  \begin{itemize}
- \item L1 has $\frac{2^5\cdot2^{10}}{2^4}=2^{11}$ entries. So, there are $\frac{11\cdot2^{19}}{2^3}=19\cdot2^8=4.75$KB for the tag array. We get a total size for L1 of $32KB + 4.75KB=36.75KB$.
+ \item L1 has $\frac{2^5\cdot2^{10}}{2^4}=2^{11}$ entries. Thus, there are $\frac{18\cdot2^{11}}{2^3}=18\cdot2^8=4.5$KB for the tag array. We get a total size for L1 of $32KB + 4.5KB=36.5KB$.
  \item L2 has $\frac{2^{20}}{2^6}=2^{14}$ entries. We get $\frac{15\cdot2^{14}}{2^3}=30\cdot2^{10} = 30 KB$ for the tag array. The total size for L2 is $(1024+30) KB=1054KB$.
   \end{itemize}
  \end{enumerate}
