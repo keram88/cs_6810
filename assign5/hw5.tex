@@ -1,0 +1,94 @@
+\documentclass[a4paper, 11pt]{exam}
+\usepackage{titling}
+\newcommand{\subtitle}[1]{%
+  \posttitle{%
+    \par\end{center}
+    \begin{center}\large#1\end{center}
+    }%
+}
+
+\usepackage{url}
+\usepackage{amsmath,amsthm,enumitem,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{float}
+\renewcommand{\labelenumii}{\roman{enumii}}
+
+\title{Homework Assignment 2}
+\subtitle{CS/ECE 6810: Computer Architecture \\
+Apr 10,2018\\
+Marek Baranowski}
+
+\begin{document}
+\maketitle
+\begin{enumerate}
+\item Virtually Indexed Caches
+
+\item Cache and Memory Model using CACTI
+
+\begin{enumerate}
+\item For the L1 cache we have the following properties from CACTI:
+\begin{verbatim}
+Cache Parameters:
+    Total cache size (bytes): 32768
+    Number of banks: 1
+    Associativity: direct mapped
+    Block size (bytes): 16
+    Read/write Ports: 1
+    Read ports: 0
+    Write ports: 0
+    Technology size (nm): 32
+
+    Access time (ns): 0.345662
+    Cycle time (ns):  0.446902
+    Total dynamic read energy per access (nJ): 0.0136127
+    Total leakage power of a bank (mW): 12.4047
+    Cache height x width (mm): 0.164353 x 0.469618 = .0772 mm^2
+    Data array space efficiency: 59.6743%
+    Tag array space efficiency: 67.1195%
+\end{verbatim}
+And for L2 we have these properties:
+\begin{verbatim}
+Cache Parameters:
+    Total cache size (bytes): 1048576
+    Number of banks: 1
+    Associativity: 4
+    Block size (bytes): 64
+    Read/write Ports: 1
+    Read ports: 0
+    Write ports: 0
+    Technology size (nm): 32
+
+    Access time (ns): 1.07383
+    Cycle time (ns):  1.34504
+    Total dynamic read energy per access (nJ): 0.34607
+    Total leakage power of a bank (mW): 335.423
+    Cache height x width (mm): 1.18466 x 1.82847 = 2.167 mm^2
+    Data array space efficiency: 67.3033%
+    Tag array space efficiency: 76.39%
+\end{verbatim}
+There are a few things to note here: L2 access times are about 3 times slower
+than L1 access times. But this comes at a somewhat significant cost where the
+L2 cache is using about 28 times more energy than the L1 cache. However, this is
+to be expected as the L2 needs at a minimum 32 times the number of
+transistors that L1 requires due to their differing sizes. This result actually
+implies the L2 cache is slightly more efficient with leakage power per stored
+bit than the L1 cache.
+
+The dimensions of both caches are notable: L1 is more rectangular,
+whereas L2 is more square.  Playing with the parameters of each cache,
+this disparity is due to the L1 cache's small size along with its
+being direct mapped and size of its cache line. Interestingly only
+changing the L1 cache size and associativity leads to a configuration
+with the same space efficiencies. As reported by CACTI, the L1 cache
+is about 10\% less space efficent than L2. We can see this in the ratio of the
+areas of the cache sizes with L2 being about 28 times larger than L1, but L2 is
+storing 32 times as much information. From $\frac{28}{32}\approx87.5\%$ we can 
+see directly the inefficiency of the L1 cache in terms of its area; the L2 cache
+is using .875 times less area per bit.
+\item 
+\end{enumerate}
+\end{enumerate}
+
+
+\end{document}
