@@ -14,7 +14,7 @@
 \usepackage{float}
 \renewcommand{\labelenumii}{\roman{enumii}}
 
-\title{Homework Assignment 2}
+\title{Homework Assignment 5}
 \subtitle{CS/ECE 6810: Computer Architecture \\
 Apr 10,2018\\
 Marek Baranowski}
@@ -23,6 +23,40 @@ Marek Baranowski}
 \maketitle
 \begin{enumerate}
 \item Virtually Indexed Caches
+
+From 
+\begin{verbatim}
+https://www.ece.cmu.edu/~ece447/s12/lib/exe/fetch.php?media=wiki:18447-l21.pdf
+\end{verbatim}
+we see that if the L1 cache is sized such that 
+$cache\_entries\le(page\_size\cdot associativity)$ then a if page offset is smaller
+than the Index and Offset, then the CPU will be able to access each cache
+entry uniquely, so we can keep the simple, concurrent TLB/cache look up scheme
+we saw in class.
+
+If on the other hand we have $cache\_entries>(page\_size\cdot associativity)$
+then the cache index will need to take some of the lower bits from the VA to
+index the cache. This leads to a ``synonym'' problem where two VAs that map
+to contiguous PAs appear to map to different sets in the cache. This is 
+undesirable since we will have two cache lines occupied for the same memory,
+leading to an incoherent view of memory. This type of indexing is referred to
+as ``virtually indexed, physically tagged'' as part of the VA is used. There 
+areways around the synonym situation:
+
+A very simple solution is mentioned in:
+\begin{verbatim}http://www.youtube.com/watch?v=cP3zeaDcq6A\end{verbatim}
+where we perform the TLB lookup {\em before} indexing into the cache, this
+provides the necessary lower PA bits to correctly index the cache. Obviously
+this is undesirable as we have a longer critical path when accessing the cache.
+
+The first reference mentions the method for handling this situation on
+the Alpha 21264 and MIPS R10K. 
+
+
+A third solution mentioned in the two prior references is to use ``page
+coloring''. In this schem, the OS ensures VAs that should map to the same 
+cache entry each have the same lower order bits so they match the PA, allowing 
+the TLB lookup to be done concurrently with the cache lookup. 
 
 \item Cache and Memory Model using CACTI
 
@@ -98,15 +132,18 @@ for differing amounts of associativity for the L2 cache.
 \includegraphics[width=.5\linewidth]{Area.png}
 \end{centering}
 \end{figure}
-It is very clear from comparing these plots that we meet diminishing returns
-very quickly by increasing associativity. When associativity is 16, the L2 cache
-is about .005ns faster than when accosiativity is 1. It becomes very apparent
-at 16 that the energy, leakage and areas are increasing faster than linearly, and
-we are not getting much in return from access times. It appears from the graphs
-that 4 way associativity may be the best trade off between access time and area,
-energy and power: 8 way associativity uses about 40\% more energy per access,
-leaks 6 more mW and occupies 14\% more die space while having only slightly
-better access times than 4 way associativity.
+It is very clear from comparing these plots that we meet diminishing
+returns very quickly by increasing associativity. When associativity
+is 16, the L2 cache is about .005ns faster than when accosiativity is
+1. It becomes very apparent at 16 that the energy, leakage and areas
+are increasing faster than linearly, and we are not getting much in
+return from access times. It appears from the graphs that 4 way
+associativity may be the best trade off between access time and area,
+energy and power: 8 way associativity uses about 40\% more energy per
+access, leaks 6 more mW and occupies 14\% more die space while having
+only slightly better access times than 4 way associativity. But in
+reality, the ideal cache parameters would be determined by the
+application.
 
 The increases in energy, leakage power and die area are to be expected since
 the higher associativity requires more circuitry to select the correct portion
