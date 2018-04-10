@@ -75,18 +75,43 @@ transistors that L1 requires due to their differing sizes. This result actually
 implies the L2 cache is slightly more efficient with leakage power per stored
 bit than the L1 cache.
 
-The dimensions of both caches are notable: L1 is more rectangular,
-whereas L2 is more square.  Playing with the parameters of each cache,
-this disparity is due to the L1 cache's small size along with its
-being direct mapped and size of its cache line. Interestingly only
-changing the L1 cache size and associativity leads to a configuration
-with the same space efficiencies. As reported by CACTI, the L1 cache
-is about 10\% less space efficent than L2. We can see this in the ratio of the
-areas of the cache sizes with L2 being about 28 times larger than L1, but L2 is
-storing 32 times as much information. From $\frac{28}{32}\approx87.5\%$ we can 
-see directly the inefficiency of the L1 cache in terms of its area; the L2 cache
-is using .875 times less area per bit.
-\item 
+The dimensions of both caches are notable: L1 is about 4 times as wide
+as it is tall, whereas L2 has a ratio between height and width of
+about 1.5.  Playing with the parameters of each cache, this disparity
+is due to the L1 cache's small size along with its being direct mapped
+and size of its cache line. Interestingly only changing the L1 cache
+size and associativity leads to a configuration with the same space
+efficiencies. As reported by CACTI, the L1 cache is about 10\% less
+space efficent than L2. We can see this in the ratio of the areas of
+the cache sizes with L2 being about 28 times larger than L1, but L2 is
+storing 32 times as much information. From
+$\frac{28}{32}\approx87.5\%$ we can see directly the inefficiency of
+the L1 cache in terms of its area; the L2 cache is using .875 times
+less area per bit.
+\item Below are the plots for access time, access energy, leakage power and area
+for differing amounts of associativity for the L2 cache.
+\begin{figure}[H]
+\begin{centering}
+\includegraphics[width=.5\linewidth]{AccessTime.png}
+\includegraphics[width=.5\linewidth]{Energy.png}
+\includegraphics[width=.5\linewidth]{Leakage.png}
+\includegraphics[width=.5\linewidth]{Area.png}
+\end{centering}
+\end{figure}
+It is very clear from comparing these plots that we meet diminishing returns
+very quickly by increasing associativity. When associativity is 16, the L2 cache
+is about .005ns faster than when accosiativity is 1. It becomes very apparent
+at 16 that the energy, leakage and areas are increasing faster than linearly, and
+we are not getting much in return from access times. It appears from the graphs
+that 4 way associativity may be the best trade off between access time and area,
+energy and power: 8 way associativity uses about 40\% more energy per access,
+leaks 6 more mW and occupies 14\% more die space while having only slightly
+better access times than 4 way associativity.
+
+The increases in energy, leakage power and die area are to be expected since
+the higher associativity requires more circuitry to select the correct portion
+of the cache entry.
+
 \end{enumerate}
 \end{enumerate}
 
