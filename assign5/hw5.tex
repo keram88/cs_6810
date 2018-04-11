@@ -68,49 +68,71 @@ color (particularly for commonly accessed VAs such as stack addresses). This can
 by hashing the processes PID with the indexing VA bits. This is a relatively
 cheap algorithm when memory is not full.
 
+From ``Page Placement Algorithms for Large Real-Indexed Caches'' by Kessler and
+Hill, there are some disadvantages to this simple scheme: inter-process VAs
+will tend have contention over the same cache set, to alleviate this the authors
+propose a scheme where the processes PID is hashed with the VA index bits. This
+tends to make contention unlikely for frequently accesses memory locations, like
+the stack (which is placed at the same VA for all processes without address
+layout randomization). This scheme is also weak when memory is low as the 
+address assignment algorithm will be forced to choose a physical page with a
+non-matching address.
+
+Kessler and Hill discuss three other methods, each with strengths and 
+weaknesses, they are:
+\begin{enumerate}
 \item Bin Hopping
-
-This scheme separates memory into ``bins'' that correspond to cache lines. When a new VA is generated for
-a page frame, a page frame is pulled from the current bin, then the algorithm moves the pointer to the 
-next bin. The first bin is randomized done per process to help avoid contention within an address space.
-Like page coloring, this doesn't require too much storage or complexity to maintain the scheme, it also
-is less susceptible to being ``crowded out'' than page coloring since it can switch to a bin that is almost
-as good.
-
-\item Best bin
-
-This algorithm associates two values with each page frame bin, how many are used and how many are free system wide.
-The placement algorithm prefers bins with lower used counts and larger free counts. This arrangement reduces 
-conflicting mappings between address spaces by preferring the bin with the fewest used page frames, leaving
-each bin roughly equally utilized. Preferring larger free counts leads to less contention within an address space.
-The fact that this algorithm is making memory more equally shared, means that the implementation won't preform as
-poorly as the previous two algorithms in low memory situations.
-
-\item Hierarchical
-
-This is an optimization of the ``Best bin'' algorithm where the ``best bin'' is found through binary search.
-This means the search time is logarithmic in the number of bins, whereas best bin is linear. A very important
-feature of this algorithm is cache size independence.
-
+\item Best Bin
+\item Hierarchical mapping
 \end{enumerate}
-
-Since it will be possible to defeat any sort of avoidance algorithm for some access pattern. A processor must
-be prepared to handle two cache lines from the same piece of memory being present, and must have a mechanism
-like described for the Alpha to remove extraneous entries to keep the cache up-to-date with memory.
 
 \item Cache and Memory Model using CACTI
 
 \begin{enumerate}
-\item For both caches I used the ?itrs-hp? data cell type. The L1 cache was set to ?fast? data access and for the L2 cache I used ?normal? data access. L1 has 17 tag bits, and L2 has 14 tag bits (which were calculated in assignment 4, except we had a 33-bit address space). Both use 128 bit data buses.
+\item For both caches I used the ``itrs-hp'' data cell type. The L1 cache
+was set to ``fast'' data access and for the L2 cache I used ``normal'' data
+access. L1 has 17 tag bits, and L2 has 14 tag bits (which were calculated
+in assignment 4, except we had a 33-bit address space). Both use 128 bit data
+buses.
 
 For the L1 cache we have the following properties from CACTI:
 \begin{verbatim}
-Cache Parameters:   Total cache size (bytes): 32768   Number of banks: 1   Associativity: direct mapped   Block size (bytes): 16   Read/write Ports: 1   Read ports: 0   Write ports: 0   Technology size (nm): 32   Access time (ns): 0.345662   Cycle time (ns):  0.446902   Total dynamic read energy per access (nJ): 0.0136127   Total leakage power of a bank (mW): 12.4047   Cache height x width (mm): 0.164353 x 0.469618 = .0772 mm^2   Data array space efficiency: 59.6743%   Tag array space efficiency: 67.1195%
+Cache Parameters:
+   Total cache size (bytes): 32768
+   Number of banks: 1
+   Associativity: direct mapped
+   Block size (bytes): 16
+   Read/write Ports: 1
+   Read ports: 0
+   Write ports: 0
+   Technology size (nm): 32
+   Access time (ns): 0.345662
+   Cycle time (ns):  0.446902
+   Total dynamic read energy per access (nJ): 0.0136127
+   Total leakage power of a bank (mW): 12.4047
+   Cache height x width (mm): 0.164353 x 0.469618 = .0772 mm^2
+   Data array space efficiency: 59.6743%
+   Tag array space efficiency: 67.1195%
 \end{verbatim}
 And for L2 we have these properties:
 \begin{verbatim}
-Cache Parameters:   Total cache size (bytes): 1048576   Number of banks: 1   Associativity: 4   Block size (bytes): 64   Read/write Ports: 1   Read ports: 0   Write ports: 0   Technology size (nm): 32   Access time (ns): 1.07383   Cycle time (ns):  1.34504   Total dynamic read energy per access (nJ): 0.241674
-   Total leakage power of a bank (mW): 327.818   Cache height x width (mm): 1.06087 x 1.77384 = 1.882 mm^2   Data array space efficiency: 75.1545%   Tag array space efficiency: 76.0056%
+Cache Parameters:
+    Total cache size (bytes): 1048576
+    Number of banks: 1
+    Associativity: 4
+    Block size (bytes): 64
+    Read/write Ports: 1
+    Read ports: 0
+    Write ports: 0
+    Technology size (nm): 32
+
+    Access time (ns): 1.07383
+    Cycle time (ns):  1.34504
+    Total dynamic read energy per access (nJ): 0.241674
+    Total leakage power of a bank (mW): 327.818
+    Cache height x width (mm): 1.06087 x 1.77384 = 1.882 mm^2
+    Data array space efficiency: 75.1545%
+    Tag array space efficiency: 76.0056%
 \end{verbatim}
 There are a few things to note here: L2 access times are about 3 times slower
 than L1 access times. But this comes at a somewhat significant cost where the
@@ -127,11 +149,12 @@ is due to the L1 cache's small size along with its being direct mapped
 and size of its cache line. Interestingly only changing the L1 cache
 size and associativity leads to a configuration with the same space
 efficiencies. As reported by CACTI, the L1 cache is about 10\% less
-space efficient than L2. We can see this in the ratio of the areas of
-the cache sizes with L2 being about 26 times larger than L1, but L2 is
+space efficent than L2. We can see this in the ratio of the areas of
+the cache sizes with L2 being about 24 times larger than L1, but L2 is
 storing 32 times as much information. From
-$\frac{28}{32}\approx75\%$ we can see directly the inefficiency of
-the L1 cache in terms of its area; the L2 cache is using .75 of the area used by L1 per bit.
+$\frac{28}{32}\approx87.5\%$ we can see directly the inefficiency of
+the L1 cache in terms of its area; the L2 cache is using 0.75 times the area per
+bit.
 \item Below are the plots for access time, access energy, leakage power and area
 for differing amounts of associativity for the L2 cache.
 \begin{figure}[H]
@@ -146,14 +169,14 @@ It is very clear from comparing these plots that we meet diminishing
 returns very quickly by increasing associativity. When associativity
 is 16, the L2 cache is about .005ns faster than when accosiativity is
 1. It becomes very apparent at 16 that the energy, leakage and areas
-are increasing faster than linearly, and we are not getting much in
-return from access times. It appears from the graphs that 4 way
-associativity may be the best trade off between access time and area,
-energy and power: 8 way associativity uses about 40\% more energy per
-access, leaks 6 more mW and occupies 14\% more die space while having
-only slightly better access times than 4 way associativity. But in
-reality, the ideal cache parameters would be determined by the
-application.
+are increasing faster than linearly (these circuits have capacitance),
+and we are not getting much in return from access times. It appears
+from the graphs that 4 way associativity may be the best trade off
+between access time and area, energy and power: 8 way associativity
+uses about 40\% more energy per access, leaks 6 more mW and occupies
+14\% more die space while having only slightly better access times
+than 4 way associativity. But in reality, the ideal cache parameters
+would be determined by the application.
 
 The increases in energy, leakage power and die area are to be expected since
 the higher associativity requires more circuitry to select the correct portion
