@@ -50,60 +50,71 @@ provides the necessary lower PA bits to correctly index the cache. Obviously
 this is undesirable as we have a longer critical path when accessing the cache.
 
 The first reference mentions the method for handling this situation on
-the Alpha 21264 and MIPS R10K. 
+the Alpha 21264 and MIPS R10K. Essentially, when a write happens and there are
+two copies of the same memory region in the cache (detected once the TLB is
+finished), only one copy is updated and the others are discarded.
 
 
-A third solution mentioned in the two prior references is to use ``page
-coloring''. In this schem, the OS ensures VAs that should map to the same 
+Some strategies for avoiding having two copies in the cache are discussed in ``Page Placement Algorithms for Large 
+Real-Indexed Caches'' by Kessler and Hill. There are four algorithms presented, with their strengths and weaknesses:
+\begin{enumerate}
+\item Page coloring
+
+In this scheme, the OS ensures VAs that should map to the same 
 cache entry each have the same lower order bits so they match the PA, allowing 
-the TLB lookup to be done concurrently with the cache lookup. 
+the TLB lookup to be done concurrently with the cache lookup. The issue with this simple
+algorithm is that on multi-process machines, another process may use all pages of a certain
+color (particularly for commonly accessed VAs such as stack addresses). This can be somewhat alleviated
+by hashing the processes PID with the indexing VA bits. This is a relatively
+cheap algorithm when memory is not full.
+
+\item Bin Hopping
+
+This scheme separates memory into ``bins'' that correspond to cache lines. When a new VA is generated for
+a page frame, a page frame is pulled from the current bin, then the algorithm moves the pointer to the 
+next bin. The first bin is randomized done per process to help avoid contention within an address space.
+Like page coloring, this doesn't require too much storage or complexity to maintain the scheme, it also
+is less susceptible to being ``crowded out'' than page coloring since it can switch to a bin that is almost
+as good.
+
+\item Best bin
+
+This algorithm associates two values with each page frame bin, how many are used and how many are free system wide.
+The placement algorithm prefers bins with lower used counts and larger free counts. This arrangement reduces 
+conflicting mappings between address spaces by preferring the bin with the fewest used page frames, leaving
+each bin roughly equally utilized. Preferring larger free counts leads to less contention within an address space.
+The fact that this algorithm is making memory more equally shared, means that the implementation won't preform as
+poorly as the previous two algorithms in low memory situations.
+
+\item Hierarchical
+
+This is an optimization of the ``Best bin'' algorithm where the ``best bin'' is found through binary search.
+This means the search time is logarithmic in the number of bins, whereas best bin is linear. A very important
+feature of this algorithm is cache size independence.
+
+\end{enumerate}
+
+Since it will be possible to defeat any sort of avoidance algorithm for some access pattern. A processor must
+be prepared to handle two cache lines from the same piece of memory being present, and must have a mechanism
+like described for the Alpha to remove extraneous entries to keep the cache up-to-date with memory.
 
 \item Cache and Memory Model using CACTI
 
 \begin{enumerate}
-\item For the L1 cache we have the following properties from CACTI:
-\begin{verbatim}
-Cache Parameters:
-    Total cache size (bytes): 32768
-    Number of banks: 1
-    Associativity: direct mapped
-    Block size (bytes): 16
-    Read/write Ports: 1
-    Read ports: 0
-    Write ports: 0
-    Technology size (nm): 32
+\item For both caches I used the ?itrs-hp? data cell type. The L1 cache was set to ?fast? data access and for the L2 cache I used ?normal? data access. L1 has 17 tag bits, and L2 has 14 tag bits (which were calculated in assignment 4, except we had a 33-bit address space). Both use 128 bit data buses.
 
-    Access time (ns): 0.345662
-    Cycle time (ns):  0.446902
-    Total dynamic read energy per access (nJ): 0.0136127
-    Total leakage power of a bank (mW): 12.4047
-    Cache height x width (mm): 0.164353 x 0.469618 = .0772 mm^2
-    Data array space efficiency: 59.6743%
-    Tag array space efficiency: 67.1195%
+For the L1 cache we have the following properties from CACTI:
+\begin{verbatim}
+Cache Parameters:   Total cache size (bytes): 32768   Number of banks: 1   Associativity: direct mapped   Block size (bytes): 16   Read/write Ports: 1   Read ports: 0   Write ports: 0   Technology size (nm): 32   Access time (ns): 0.345662   Cycle time (ns):  0.446902   Total dynamic read energy per access (nJ): 0.0136127   Total leakage power of a bank (mW): 12.4047   Cache height x width (mm): 0.164353 x 0.469618 = .0772 mm^2   Data array space efficiency: 59.6743%   Tag array space efficiency: 67.1195%
 \end{verbatim}
 And for L2 we have these properties:
 \begin{verbatim}
-Cache Parameters:
-    Total cache size (bytes): 1048576
-    Number of banks: 1
-    Associativity: 4
-    Block size (bytes): 64
-    Read/write Ports: 1
-    Read ports: 0
-    Write ports: 0
-    Technology size (nm): 32
-
-    Access time (ns): 1.07383
-    Cycle time (ns):  1.34504
-    Total dynamic read energy per access (nJ): 0.34607
-    Total leakage power of a bank (mW): 335.423
-    Cache height x width (mm): 1.18466 x 1.82847 = 2.167 mm^2
-    Data array space efficiency: 67.3033%
-    Tag array space efficiency: 76.39%
+Cache Parameters:   Total cache size (bytes): 1048576   Number of banks: 1   Associativity: 4   Block size (bytes): 64   Read/write Ports: 1   Read ports: 0   Write ports: 0   Technology size (nm): 32   Access time (ns): 1.07383   Cycle time (ns):  1.34504   Total dynamic read energy per access (nJ): 0.241674
+   Total leakage power of a bank (mW): 327.818   Cache height x width (mm): 1.06087 x 1.77384 = 1.882 mm^2   Data array space efficiency: 75.1545%   Tag array space efficiency: 76.0056%
 \end{verbatim}
 There are a few things to note here: L2 access times are about 3 times slower
 than L1 access times. But this comes at a somewhat significant cost where the
-L2 cache is using about 28 times more energy than the L1 cache. However, this is
+L2 cache is using about 26 times more energy than the L1 cache. However, this is
 to be expected as the L2 needs at a minimum 32 times the number of
 transistors that L1 requires due to their differing sizes. This result actually
 implies the L2 cache is slightly more efficient with leakage power per stored
@@ -116,12 +127,11 @@ is due to the L1 cache's small size along with its being direct mapped
 and size of its cache line. Interestingly only changing the L1 cache
 size and associativity leads to a configuration with the same space
 efficiencies. As reported by CACTI, the L1 cache is about 10\% less
-space efficent than L2. We can see this in the ratio of the areas of
-the cache sizes with L2 being about 28 times larger than L1, but L2 is
+space efficient than L2. We can see this in the ratio of the areas of
+the cache sizes with L2 being about 26 times larger than L1, but L2 is
 storing 32 times as much information. From
-$\frac{28}{32}\approx87.5\%$ we can see directly the inefficiency of
-the L1 cache in terms of its area; the L2 cache is using .875 times
-less area per bit.
+$\frac{28}{32}\approx75\%$ we can see directly the inefficiency of
+the L1 cache in terms of its area; the L2 cache is using .75 of the area used by L1 per bit.
 \item Below are the plots for access time, access energy, leakage power and area
 for differing amounts of associativity for the L2 cache.
 \begin{figure}[H]
