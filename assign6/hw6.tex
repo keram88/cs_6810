@@ -1,5 +1,6 @@
 \documentclass[a4paper, 11pt]{exam}
 \usepackage{titling}
+\usepackage{float}
 \newcommand{\subtitle}[1]{%
   \posttitle{%
     \par\end{center}
@@ -17,6 +18,7 @@
 
 \title{Homework Assignment 6}
 \subtitle{CS/ECE 6810: Computer Architecture \\
+Marek Baranowski\\
 April 11, 2018}
 
 \author{ \\
@@ -88,6 +90,24 @@ Assume that a memory channel is connected to eight x8 memory chips. Consider a n
 01040101\newline
 00161804\newline
 01040104\newline
-
+\begin{table}[H]
+\small
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+Address & row(13) & bank(3) & column(16) & Commands & Reason\\
+\hline
+0x00040108 & 0000000000000 & 100 & 0000000100001000 & Activate, Read & Row buffer empty\\
+\hline
+0x01040101 & 0000000100000 & 100 & 0000000100000001 & Precharge, Activate, Read & Row miss\\
+\hline
+0x00161804 & 0000000000010 & 110 & 0001100000000100 & Activate, Read & Row buffer empty\\
+\hline
+0x01040104 & 0000000100000 & 100 & 0000000100000100 & Read & Row hit\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}%
+Eight commands are needed for this sequence of memory accesses.
 \end{enumerate}
 \end{document}
