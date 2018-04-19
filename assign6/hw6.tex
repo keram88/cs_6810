@@ -48,36 +48,78 @@ Important Notes:
 
 
 \begin{center}
+\footnotesize
 \begin{tabular}{|c|c|c|c|}
  \hline
- \textbf{Row being accessed} & \textbf{Arrival time at} & \textbf{Open-page} & \textbf{Close-page} \\
-  & \textbf{memory controller} & & \\
+ \textbf{Row being} & \textbf{Arrival time at} & \textbf{Open-page} & \textbf{Close-page} \\
+  \textbf{accessed} & \textbf{memory controller} & & \\
  \hline
- X  & 10 ns &  & \\
+ X  & 10 ns & 50ns (RAS + CAS) & 50ns for data \\
+    &       &                  & Next command at 70ns\\
  \hline
- X  & 70 ns &  & \\
+ X  & 70 ns & 90ns (CAS)  & 110ns for data\\
+    &       &             & Next command at 130ns\\
  \hline
- Y  & 90 ns &  & \\
+ Y  & 90 ns & 150ns (Pre + RAS + CAS) & 170ns for data\\
+    &       &                  & Next command at 190ns\\
  \hline
- X  & 100 ns &  & \\
+ X  & 100 ns & 210ns (Pre + RAS + CAS) & 230ns for data\\
+    &       &                  & Next command at 250ns\\
  \hline
- Y  & 180 ns &  & \\
+ Y  & 180 ns & 270ns (Pre + RAS + CAS)  & 290ns for data\\
+    &       &                  & Next command at 310ns\\
  \hline
  \end{tabular}
 \end{center}
+The scheduling in the open page policy doesn't quite line up to allow us
+to reorder loads, hence we have to do row cycling on the last 3 accesses.
 
+The closed page policy always does a RAS and CAS for the load, then a precharge,
+effectively the next command cannot start until 70ns after the first one was
+issued. The closed page policy could be reordered, e.g., the last X 
+could come before the first Y, but it wouldn't really affect the final total
+time for all memory accesses to complete.
  
 \item \textbf{Memory System Design (20 points): } Modern systems have processors with four memory channels. Assume that a memory channel has 64 bits for data and 24 bits for address and command.
 Assume that a memory channel is connected to eight x8 memory chips. Consider a new memory system that shrinks the data bus of the memory channel to 32 bits. Assume that such a channel would be connected to four x8 memory chips. Mention \textbf{two pros} and \textbf{two cons} of the new memory system (Be very concise).\newline
+
+Pros:
+\begin{enumerate}
+\item There are fewer wires connecting the DRAM to the CPU.
+\item A single memory access has lower latency.
+\end{enumerate}
+
+Cons:
+\begin{enumerate}
+\item Lower bandwidth on the bus.
+\item The number of DRAM commands will be doubled.
+\end{enumerate}
  
 \item \textbf {Virtually Indexed Physically Tagged Cache (20 points): }  Assume that the OS uses a minimum page size of 4 KB. Assume that your L1 cache must be 8-way set-associative. If you're trying to correctly implement a virtually indexed physically tagged cache (with no additional support from the OS), what is the largest L1 cache that you can design? \newline
 
+  We have 4KB = $2^{12}$B pages, so our cache index and offset are 12
+  bits from the VA. We have 8 entries per set giving the formula
+  $cache_{size}= 8\cdot2^{index}\cdot2^{offset}$ since
+  $index + offset = 12$, we have a cache of size
+  $2^{15}$B=32KB, regardless of the number of sets or cache line width.
 
 \item \textbf {DRAM Control (10 points): } Express the latency of a memory load as a function of tRAS, tRP, tRCD, tCL in the following situations:
 
  \begin{enumerate}
  \item  The correct row is already placed in the row buffer
+
+   If there is a row hit, we need only do a CAS. Here we have {\it
+     t}CL which is the time for the row buffer to be readable
+   (volatages are stable enough to know the content) after a CAS. The
+   time in this situation is {\it t}CL. (I referenced 
+   \begin{verbatim} https://en.wikipedia.org/wiki/Dynamic_random-access_memory\end{verbatim}
+   for this).
+
  \item  Another row is already placed in the row buffer.
+
+In the case of a full row and a miss, we need to do a precharge, activate and
+CAS. The commands we issue are Row Precharge (RP), RAS and CAS, this takes time
+{\it t}RP + {\it t}RCD + {\it t}CL.
  \end{enumerate}
 
 \item \textbf {DRAM Control Tasks – Request Scheduling (20 points): }  Find the total number of commands sent by an in-order command scheduler for the given sequence of memory addresses for reads, using the following address mapping scheme:
